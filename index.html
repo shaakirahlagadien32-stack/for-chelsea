@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+    <meta name="theme-color" content="#0d0f12" />
+    <meta name="description" content="A little something, made for Chelsea." />
+    <title>For Chelsea</title>
+  </head>
+  <body>
+    <div id="app" class="app" data-state="LOCKED">
+      <!-- ————— the world ————— -->
+      <div class="world" aria-hidden="true">
+        <div class="camera" id="camera">
+          <div class="plate plate--colour" id="plate-colour"></div>
+          <div class="plate plate--mono" id="plate-mono"></div>
+        </div>
+        <div class="brush" id="brush"></div>
+        <div class="daylight" id="daylight"></div>
+      </div>
+
+      <canvas class="motes" id="motes" aria-hidden="true"></canvas>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <!-- ————— the gesture surface, alive only during the colour reveal ————— -->
+      <div class="swipe" id="swipe" role="slider" tabindex="-1" hidden
+           aria-label="Swipe from left to right to reveal the colour"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="no colour yet"></div>
+
+      <!-- ————— narrative layer ————— -->
+      <main class="stage" id="stage">
+        <h1 class="greeting" id="greeting" aria-hidden="true">
+          <span class="greeting__line"><span class="w">Happy</span> <span class="w">Birthday</span></span>
+          <span class="greeting__name">Chelsea</span>
+        </h1>
+
+        <p class="hint" id="hint" aria-hidden="true">
+          <span class="hint__text">Swipe to reveal the colour</span>
+          <span class="hint__trail" aria-hidden="true"></span>
+        </p>
+
+        <p class="verse" id="verse" aria-hidden="true">you the light in everyones lives</p>
+
+        <button class="onward" id="onward" type="button" hidden>
+          <span class="onward__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 24" width="48" height="24" fill="none" aria-hidden="true">
+              <path d="M2 12h42M34 3l10 9-10 9" stroke="currentColor" stroke-width="1.25"
+                    stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="onward__label">Keep going &#8594;</span>
+        </button>
+
+        <div class="closing" id="closing" aria-hidden="true">
+          <p class="closing__lead">your little ray of sunshine will be here soon</p>
+          <p class="closing__coda">wishing you many more blessings, health and love.</p>
+        </div>
+      </main>
+
+      <!-- ————— live region for assistive tech ————— -->
+      <p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+
+      <!-- ————— the lock ————— -->
+      <section class="lock" id="lock" aria-label="This card is locked">
+        <div class="lock__shells" id="lock-shells" aria-hidden="true"></div>
+          <div class="lock__veil" aria-hidden="true"></div>
+        <div class="lock__inner">
+          <form class="lock__form" id="lock-form" novalidate>
+            <div class="lock__copy">
+              <span class="lock__glyph" aria-hidden="true">
+                <svg viewBox="0 0 32 40" width="30" height="38" fill="none">
+                  <path class="lock__shackle" d="M8.5 17V11a7.5 7.5 0 0 1 15 0v6" stroke="currentColor"
+                        stroke-width="1.1" stroke-linecap="round" />
+                  <rect class="lock__body" x="3.5" y="17" width="25" height="20" rx="4.5"
+                        stroke="currentColor" stroke-width="1.1" />
+                  <circle class="lock__pin" cx="16" cy="27" r="1.8" fill="currentColor" />
+                </svg>
+              </span>
+
+              <p class="lock__eyebrow">Something was made for you</p>
+              <h2 class="lock__title">a day worth remembering</h2>
+
+              <div class="dots" id="dots" aria-hidden="true">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+              <p class="lock__note" id="lock-note" aria-live="polite"></p>
+              <span class="sr-only" id="entry" aria-live="polite"></span>
+            </div>
+
+            <div class="keypad" id="keypad" role="group" aria-label="Passcode keypad">
+              <button class="key" type="button" data-key="1">1</button>
+              <button class="key" type="button" data-key="2">2</button>
+              <button class="key" type="button" data-key="3">3</button>
+              <button class="key" type="button" data-key="4">4</button>
+              <button class="key" type="button" data-key="5">5</button>
+              <button class="key" type="button" data-key="6">6</button>
+              <button class="key" type="button" data-key="7">7</button>
+              <button class="key" type="button" data-key="8">8</button>
+              <button class="key" type="button" data-key="9">9</button>
+              <span class="key key--blank" aria-hidden="true"></span>
+              <button class="key" type="button" data-key="0">0</button>
+              <button class="key key--erase" type="button" data-key="erase" aria-label="Delete last digit">
+                <svg viewBox="0 0 24 18" width="21" height="16" fill="none" aria-hidden="true">
+                  <path d="M8 1.5h13a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H8L1.5 9z"
+                        stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+                  <path d="M12 6.5l5 5M17 6.5l-5 5" stroke="currentColor" stroke-width="1.3"
+                        stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <button class="unlock" id="unlock" type="submit" disabled>Unlock</button>
+          </form>
+        </div>
+      </section>
+
+      <button class="sound" id="sound" type="button" hidden aria-pressed="false"
+              aria-label="Toggle ambient sound">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z" stroke="currentColor" stroke-width="1.2"
+                stroke-linejoin="round" />
+          <path class="sound__wave" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.7a7.5 7.5 0 0 1 0 10.6"
+                stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <noscript>
+      <p style="font:16px/1.6 Georgia,serif;color:#e8e2d8;background:#0d0f12;margin:0;padding:18vh 8vw">
+        Happy Birthday Chelsea — this card needs JavaScript to open.
+      </p>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

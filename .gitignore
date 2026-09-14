@@ -1,0 +1,5 @@
+node_modules/
+dist/
+For Chelsea.html
+.DS_Store
+*.log

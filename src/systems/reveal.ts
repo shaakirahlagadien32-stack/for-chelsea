@@ -33,15 +33,18 @@ export function createReveal({ surface, onProgress, onComplete, reducedMotion }:
   let pointer: number | null = null
   let lastX = 0
 
-  const chase = reducedMotion ? 0.3 : 0.13
-  const span = () => Math.max(160, surface.getBoundingClientRect().width * 0.78)
+  // Fast enough to feel attached to the finger, slow enough to stay smooth.
+  const chase = reducedMotion ? 0.4 : 0.26
+  // How far a finger travels to paint the whole valley: a little over half the
+  // screen, so a comfortable one-thumb swipe covers real ground.
+  const span = () => Math.max(140, surface.getBoundingClientRect().width * 0.55)
 
   function push(dx: number, gain = 1) {
     if (done) return
     target = Math.min(1, Math.max(0, target + (dx / span()) * gain))
     energy = Math.min(1, energy + Math.abs(dx) / 90)
     // Near the end, help the last sliver along so nobody is left scrubbing.
-    if (target > 0.94) target = 1
+    if (target > 0.9) target = 1
     surface.setAttribute('aria-valuenow', String(Math.round(target * 100)))
   }
 
@@ -74,8 +77,18 @@ export function createReveal({ surface, onProgress, onComplete, reducedMotion }:
   }
   const onMove = (e: PointerEvent) => {
     if (pointer !== e.pointerId) return
-    push(e.clientX - lastX)
-    lastX = e.clientX
+    // A fast drag can deliver several positions in one event; using all of them
+    // keeps the wipe tracking the finger instead of jumping between samples.
+    const points = e.getCoalescedEvents?.() ?? []
+    if (points.length > 1) {
+      for (const p of points) {
+        push(p.clientX - lastX)
+        lastX = p.clientX
+      }
+    } else {
+      push(e.clientX - lastX)
+      lastX = e.clientX
+    }
     e.preventDefault()
   }
   const onUp = (e: PointerEvent) => {

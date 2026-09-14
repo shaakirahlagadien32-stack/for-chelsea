@@ -1,9 +1,9 @@
 /**
  * One world, two scenes.
  *
- * Everything — sky, slopes, roses, egg — lives in a single painted rectangle.
- * Moving from the wide opening view to the close-up of the egg is a real camera
- * move across that painting, which is why the two scenes feel like one place.
+ * Everything — sky, slopes, roses — lives in a single painted rectangle. Moving
+ * from the wide opening view to the closing one is a real camera move across
+ * that painting, which is why the two scenes feel like one place.
  *
  * The plate element is sized to the *whole* canvas rather than to the viewport,
  * and positioned so that, untransformed, the viewport happens to frame the wide
@@ -20,11 +20,8 @@ export const CANVAS = { x: -80, y: -80, w: 1760, h: 2480 } as const
 /** Where the wide shot is centred. */
 export const FOCUS = { x: 800, y: 1200 } as const
 
-/** Where the egg is nestled among the roses. */
-export const EGG = { x: 1046, y: 2006 } as const
-
-/** Egg height in world units — used to size the close-up. */
-const EGG_HEIGHT = 132
+/** Where the camera drifts for the closing scene. */
+export const CLOSING = { x: 840, y: 1300 } as const
 
 export interface Frame {
   x: number
@@ -88,16 +85,15 @@ export interface Shot {
   scale: number
 }
 
-/** Push in on a world point, seating it at `anchorY` down the viewport. */
+/** Ease in on a world point, seating it at `anchorY` down the viewport. */
 export function shotOn(
   world: { x: number; y: number },
   st: Stage,
   cw: number,
   ch: number,
-  opts: { anchorY?: number; targetHeight?: number } = {},
+  opts: { anchorY?: number; scale?: number } = {},
 ): Shot {
-  const wanted = opts.targetHeight ?? Math.min(ch * 0.23, cw * 0.36)
-  const scale = clamp(wanted / (EGG_HEIGHT * st.sigma), 1.5, 7)
+  const scale = clamp(opts.scale ?? 1.3, 1, 7)
 
   // where the point already sits in the viewport, before any transform
   const restX = (world.x - st.frame.x) * st.sigma

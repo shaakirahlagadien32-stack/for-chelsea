@@ -10,9 +10,6 @@ export const STATES = [
   'COLOUR_REVEAL',
   'LIGHT_MESSAGE',
   'CONTINUE',
-  'EGG_SCENE',
-  'EGG_CRACKING',
-  'HATCHED',
   'FINAL_MESSAGE',
 ] as const
 

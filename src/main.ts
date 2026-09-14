@@ -3,13 +3,12 @@ import './styles.css'
 import { Story } from './state'
 import { paintLandscape } from './art/landscape'
 import { paintShells } from './art/shells'
-import { paintEgg } from './art/egg'
-import { CANVAS, EGG, shotOn, shotToCss, stage, type Stage } from './art/world'
+import kitten from './assets/kitten.webp'
+import { CANVAS, CLOSING, shotOn, shotToCss, stage, type Stage } from './art/world'
 import { createReveal, type RevealHandle } from './systems/reveal'
 import { createMotes } from './systems/motes'
 import { createAmbience } from './systems/ambience'
 import { mountLock } from './scenes/lock'
-import { runHatch, type HatchHandle } from './scenes/hatch'
 
 const $ = <T extends Element>(id: string) => document.getElementById(id) as unknown as T
 
@@ -35,10 +34,9 @@ const motes = createMotes(motesCanvas, reduced)
 const ambience = createAmbience(new URL('audio/ambience.mp3', document.baseURI).href)
 
 let reveal: RevealHandle | null = null
-let hatch: HatchHandle | null = null
 let view: Stage = stage(window.innerWidth, window.innerHeight)
-/** Which of the three framings the camera is holding. */
-type Framing = 'wide' | 'egg' | 'coda'
+/** Which framing the camera is holding. */
+type Framing = 'wide' | 'closing'
 let framing: Framing = 'wide'
 
 /* ————————————————————————————————————————————————————————————
@@ -56,12 +54,7 @@ plateMono.innerHTML = paintLandscape('m', detail)
 const colourSvg = plateColour.querySelector('svg') as SVGSVGElement
 const monoSvg = plateMono.querySelector('svg') as SVGSVGElement
 
-// The egg belongs to the world, so it is planted inside the painting itself and
-// only ever lives on the colour plate — by the time it appears, the monochrome
-// plate has been wiped away entirely.
-const props = plateColour.querySelector('#c-props') as SVGGElement
-props.innerHTML = paintEgg('c')
-const egg = props.querySelector('#egg') as SVGGElement
+$<HTMLImageElement>('gift-cat').src = kitten
 
 function layout() {
   const w = window.innerWidth
@@ -93,13 +86,13 @@ function applyCamera() {
     camera.style.transform = 'translate3d(0,0,0) scale(1)'
     return
   }
-  const cw = window.innerWidth
-  const ch = window.innerHeight
-  // The last beat eases back a little, to leave the meadow room to breathe.
-  const shot =
-    framing === 'coda'
-      ? shotOn(EGG, view, cw, ch, { targetHeight: Math.min(ch * 0.2, cw * 0.31), anchorY: 0.38 })
-      : shotOn(EGG, view, cw, ch)
+  // The closing beat drifts gently into the meadow rather than cutting to it.
+  // Gentle on purpose: a wide screen sees far more world per pixel than a phone,
+  // and anything stronger buries the valley in the rose field.
+  const shot = shotOn(CLOSING, view, window.innerWidth, window.innerHeight, {
+    scale: 1.12,
+    anchorY: 0.5,
+  })
   camera.style.transformOrigin = `${shot.originX.toFixed(2)}px ${shot.originY.toFixed(2)}px`
   camera.style.transform = shotToCss(shot)
 }
@@ -114,7 +107,7 @@ function paintMask(progress: number) {
   lastProgress = progress
   const cw = window.innerWidth
   const { left, width } = view.plate
-  const soft = cw * 0.2
+  const soft = cw * 0.16
   const edge = progress * (cw + soft)
   app.style.setProperty('--mask-a', `${(((edge - soft - left) / width) * 100).toFixed(3)}%`)
   app.style.setProperty('--mask-b', `${(((edge - left) / width) * 100).toFixed(3)}%`)
@@ -133,9 +126,8 @@ const SAID: Partial<Record<string, string>> = {
   COLOUR_REVEAL: 'A monochrome landscape. Swipe from left to right, or press the right arrow key, to paint the colour back in.',
   LIGHT_MESSAGE: 'you the light in everyones lives',
   CONTINUE: 'Keep going. Activate the arrow, or swipe right, to continue.',
-  EGG_SCENE: 'A small egg is resting in the meadow.',
-  HATCHED: 'The egg has hatched. A tiny ray of sunshine.',
-  FINAL_MESSAGE: 'your little ray of sunshine will be here soon. wishing you many more blessings, health and love.',
+  FINAL_MESSAGE:
+    'A kitten holding a bouquet of pink lilies. wishing you a happy, healthy and blessed year further filled with love. from shaakirah.',
 }
 
 story.on((next) => {
@@ -214,10 +206,10 @@ function finishColourReveal() {
 }
 
 /* ————————————————————————————————————————————————————————————
-   3 — onward, to the egg
+   3 — onward, to the last word
    ———————————————————————————————————————————————————————————— */
 
-onward.addEventListener('click', goToEgg)
+onward.addEventListener('click', goToClosing)
 
 // A right-swipe anywhere continues too, for anyone who never looks at buttons.
 let gestureX: number | null = null
@@ -225,37 +217,27 @@ app.addEventListener('pointerdown', (e) => {
   if (story.is('CONTINUE')) gestureX = e.clientX
 })
 app.addEventListener('pointerup', (e) => {
-  if (gestureX !== null && story.is('CONTINUE') && e.clientX - gestureX > 56) goToEgg()
+  if (gestureX !== null && story.is('CONTINUE') && e.clientX - gestureX > 56) goToClosing()
   gestureX = null
 })
 
-function goToEgg() {
-  if (!story.advance('EGG_SCENE')) return
+function goToClosing() {
+  if (!story.advance('FINAL_MESSAGE')) return
   onward.disabled = true
   window.setTimeout(() => {
     onward.hidden = true
   }, 1800)
-  egg.classList.add('is-present')
-  framing = 'egg'
+
+  framing = 'closing'
   applyCamera()
   motes.setMood('gold')
+  motes.setDensity(1.45)
 
-  wait(2600, () => {
-    hatch = runHatch(egg, reduced, {
-      onStage: () => undefined,
-      onCracking: () => story.advance('EGG_CRACKING'),
-      onHatched: () => {
-        story.advance('HATCHED')
-        motes.setDensity(1.5)
-      },
-      onSettled: () => {
-        story.advance('FINAL_MESSAGE')
-        framing = 'coda'
-        applyCamera()
-        closing.setAttribute('aria-hidden', 'false')
-      },
-    })
-  })
+  // The words that have been on screen step aside before anything new arrives.
+  greeting.setAttribute('aria-hidden', 'true')
+  verse.setAttribute('aria-hidden', 'true')
+
+  wait(1500, () => closing.setAttribute('aria-hidden', 'false'))
 }
 
 /* ————————————————————————————————————————————————————————————
@@ -267,7 +249,7 @@ function goToEgg() {
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' && story.is('CONTINUE')) {
     e.preventDefault()
-    goToEgg()
+    goToClosing()
   }
 })
 
@@ -295,20 +277,19 @@ if (import.meta.env.DEV) {
     value: {
       story,
       unlock: () => {
-        const el = $<HTMLInputElement>('passcode')
-        el.value = '1409'
-        el.dispatchEvent(new Event('input', { bubbles: true }))
+        for (const d of '1409') {
+          document.querySelector<HTMLElement>(`[data-key="${d}"]`)?.click()
+        }
       },
       paint: () => reveal?.complete(),
-      onward: goToEgg,
-      egg,
+      onward: goToClosing,
       /** Run the whole story at speed, for a quick look at the last scene. */
       skim: () => {
-        const el = $<HTMLInputElement>('passcode')
-        el.value = '1409'
-        el.dispatchEvent(new Event('input', { bubbles: true }))
-        window.setTimeout(() => reveal?.complete(), 7400)
-        window.setTimeout(goToEgg, 17000)
+        for (const d of '1409') {
+          document.querySelector<HTMLElement>(`[data-key="${d}"]`)?.click()
+        }
+        window.setTimeout(() => reveal?.complete(), 10000)
+        window.setTimeout(goToClosing, 20000)
       },
     },
   })
@@ -316,6 +297,5 @@ if (import.meta.env.DEV) {
 
 window.addEventListener('pagehide', () => {
   reveal?.destroy()
-  hatch?.cancel()
   motes.destroy()
 })

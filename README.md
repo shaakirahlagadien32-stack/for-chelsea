@@ -27,8 +27,8 @@ A strict, linear state machine (`src/state.ts`) — a stray swipe or a double ta
 can never land somewhere that hasn't been reached yet:
 
 ```
-LOCKED → UNLOCKED → BIRTHDAY_INTRO → COLOUR_REVEAL → LIGHT_MESSAGE
-      → CONTINUE → EGG_SCENE → EGG_CRACKING → HATCHED → FINAL_MESSAGE
+LOCKED → UNLOCKED → BIRTHDAY_INTRO → COLOUR_REVEAL
+      → LIGHT_MESSAGE → CONTINUE → FINAL_MESSAGE
 ```
 
 ## The artwork
@@ -40,9 +40,11 @@ Everything is drawn in code — no images anywhere.
   a warm-graphite CSS filter, so the two plates line up exactly and the swipe can
   wipe cleanly between them.
 - `src/art/shells.ts` — the seashell drawing behind the passcode screen.
-- `src/art/egg.ts` — the egg, and what is inside it.
-- `src/art/world.ts` — the camera. Both scenes are the same painting; moving
-  between them is a real camera push, not a cut.
+- `src/art/world.ts` — the camera. Both scenes are the same painting; the closing
+  beat drifts into the meadow rather than cutting to it.
+
+The one photograph is `src/assets/kitten.webp`, cut out of its background and
+inlined with the rest of the page at build time.
 
 ## Optional sound
 

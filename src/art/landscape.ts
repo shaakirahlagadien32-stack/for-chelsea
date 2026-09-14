@@ -1,6 +1,6 @@
 import { seeded, between, round } from './rng'
 import { smoothOpen } from './curve'
-import { CANVAS, EGG, WORLD } from './world'
+import { CANVAS, WORLD } from './world'
 
 /**
  * The valley.
@@ -83,16 +83,6 @@ function onPath(x: number, y: number, margin = 0): boolean {
 
 /* ————— brushwork ————— */
 
-/**
- * Nothing grows where the egg is sitting. Blooms below it are left alone, so it
- * still looks nestled down among them rather than standing in a bald patch.
- */
-function shadesTheEgg(x: number, y: number, size: number): boolean {
-  const dx = (x - EGG.x) / (104 + size)
-  const dy = (y - (EGG.y - 24)) / (132 + size)
-  return dx * dx + dy * dy < 1
-}
-
 /** Long horizontal drags of the palette knife, for the sky and the fields. */
 function drags(
   r: R,
@@ -154,7 +144,6 @@ function stems(
   len: [number, number],
   tones: readonly string[],
   o: [number, number],
-  clearEgg = false,
 ): string {
   let out = ''
   for (let i = 0; i < count; i++) {
@@ -162,8 +151,6 @@ function stems(
     const y = between(r, y0, y1)
     const depth = (y - y0) / Math.max(1, y1 - y0)
     const l = between(r, len[0], len[1]) * (0.45 + depth)
-    // Blades in front of the egg are fine; blades drawn across its face are not.
-    if (clearEgg && shadesTheEgg(x, y - l * 0.7, 24)) continue
     const lean = between(r, -l * 0.34, l * 0.34)
     const tone = tones[Math.floor(r() * tones.length)] ?? tones[0]
     out +=
@@ -263,9 +250,7 @@ function roseField(r: R, count: number, y0: number, y1: number, size: [number, n
     const y = between(r, y0, y1)
     if (onPath(x, y, tier === 2 ? -size[1] * 0.85 : -size[0] * 0.5)) continue
     const depth = (y - y0) / Math.max(1, y1 - y0)
-    const rad = between(r, size[0], size[1]) * (0.72 + depth * 0.5)
-    if (shadesTheEgg(x, y, rad)) continue
-    out += rose(r, x, y, rad, tier)
+    out += rose(r, x, y, between(r, size[0], size[1]) * (0.72 + depth * 0.5), tier)
     made++
   }
   return out
@@ -410,7 +395,7 @@ export function paintLandscape(prefix: string, detail = 1): string {
   const rosesMid = `<g class="ls-roses-mid">${roseField(r, n(380), 1560, 1980, [15, 28], 1)}</g>`
   const rosesNear =
     `<g class="ls-roses-near">` +
-    stems(r, n(140), -60, w + 60, 1880, 2500, [44, 140], ['#3a4d2d', '#4e6338', '#2b3e23'], [0.42, 0.82], true) +
+    stems(r, n(140), -60, w + 60, 1880, 2500, [44, 140], ['#3a4d2d', '#4e6338', '#2b3e23'], [0.42, 0.82]) +
     roseField(r, n(150), 1900, 2520, [18, 36], 2) +
     `</g>`
 
@@ -471,7 +456,6 @@ function vergeGrass(r: R, count: number): string {
     const side = r() > 0.5 ? 1 : -1
     const x = pathCentre(t) + side * pathHalf(t) + between(r, -26, 18) * side
     const l = between(r, 18, 64) * (0.4 + t)
-    if (shadesTheEgg(x, y - l * 0.7, 24)) continue
     const lean = between(r, -0.5, 0.5) * l
     out +=
       `<path d="M ${round(x)} ${round(y)} Q ${round(x + lean * 0.35)} ${round(y - l * 0.62)} ${round(x + lean)} ${round(y - l)}" ` +
@@ -487,7 +471,7 @@ function bushes(r: R, count: number, y0: number, y1: number): string {
   for (let i = 0; i < count; i++) {
     const y = between(r, y0, y1)
     const x = between(r, -60, WORLD.w + 60)
-    if (onPath(x, y, 20) || shadesTheEgg(x, y, 90)) continue
+    if (onPath(x, y, 20)) continue
     const depth = (y - y0) / Math.max(1, y1 - y0)
     out += tree(r, x, y, between(r, 42, 120) * (0.6 + depth * 0.8), r() > 0.5 ? '#2f4326' : '#3a5130', between(r, 0.72, 0.95))
   }

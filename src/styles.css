@@ -93,7 +93,6 @@ body {
    changes something even after the wipe has crossed the screen. */
 .plate--colour {
   filter: saturate(calc(0.38 + var(--reveal) * 0.62)) contrast(calc(1 + var(--reveal) * 0.04));
-  transition: filter 0.5s linear;
 }
 
 /* Warm graphite rather than flat grey — closer to an ink wash than a
@@ -137,10 +136,8 @@ body {
     rgba(var(--glow), 0.16) 42%,
     transparent 72%
   );
-  transition: opacity 1.4s var(--soft);
 }
-.app[data-state="HATCHED"] .daylight,
-.app[data-state="FINAL_MESSAGE"] .daylight { opacity: 1; }
+.app[data-state="FINAL_MESSAGE"] .daylight { opacity: 1; transition: opacity 2.4s var(--soft); }
 
 .motes {
   position: absolute;
@@ -288,7 +285,12 @@ body {
   transition: opacity 1.4s var(--soft);
 }
 .hint[aria-hidden="false"] { opacity: 1; }
-.app[data-state="COLOUR_REVEAL"] .hint { opacity: calc(1 - var(--reveal) * 1.25); }
+/* while swiping, the hint tracks the reveal directly — a long transition here
+   reads as the whole gesture lagging */
+.app[data-state="COLOUR_REVEAL"] .hint {
+  opacity: calc(1 - var(--reveal) * 1.25);
+  transition: opacity 0.45s var(--soft);
+}
 
 .hint::before {
   content: "";
@@ -422,65 +424,78 @@ body {
 .closing {
   position: absolute;
   left: 50%;
-  bottom: calc(13vh + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
-  width: min(86vw, 36rem);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(88vw, 34rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   opacity: 0;
-  transition: opacity 2.8s var(--soft);
+  transition: opacity 2.4s var(--soft);
 }
-.closing::before {
+.closing__words {
+  position: relative;
+  width: 100%;
+}
+.closing__words::before {
   content: "";
   position: absolute;
-  left: 50%; top: 50%;
-  width: 200%; height: 340%;
+  left: 50%; top: 54%;
+  width: 176%; height: 158%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side ellipse at 50% 50%, rgba(32, 22, 26, 0.62), rgba(32, 22, 26, 0.3) 58%, transparent 76%);
+  background: radial-gradient(closest-side ellipse at 50% 50%, rgba(30, 20, 24, 0.74), rgba(30, 20, 24, 0.36) 56%, transparent 80%);
   z-index: -1;
 }
 .closing[aria-hidden="false"] { opacity: 1; }
+
+.closing__cat {
+  display: block;
+  width: auto;
+  height: clamp(10rem, 34vh, 19rem);
+  margin-bottom: clamp(1.9rem, 7vw, 3rem);
+  /* the cutout sits on the meadow, so it needs its own contact shadow */
+  filter: drop-shadow(0 14px 18px rgba(30, 26, 18, 0.42));
+  opacity: 0;
+  transform: translateY(1.1rem) scale(0.96);
+}
 
 .closing__lead {
   margin: 0;
   font-family: var(--display);
   font-style: italic;
-  font-size: clamp(1.3rem, 5.6vw, 2.4rem);
-  line-height: 1.44;
+  font-size: clamp(1.2rem, 5.1vw, 2.1rem);
+  line-height: 1.45;
   text-wrap: balance;
   color: #fffdf6;
-  text-shadow: 0 0 48px rgba(255, 234, 190, 0.6), 0 2px 24px rgba(26, 24, 16, 0.55);
+  text-shadow: 0 0 48px rgba(255, 234, 190, 0.6), 0 2px 24px rgba(26, 24, 16, 0.6);
   opacity: 0;
   transform: translateY(0.5em);
   filter: blur(9px);
 }
-.closing__coda {
-  margin: clamp(1.5rem, 5.2vw, 2.2rem) 0 0;
-  font-family: var(--ui);
-  font-size: clamp(0.66rem, 2.85vw, 0.78rem);
-  letter-spacing: 0.26em;
-  text-indent: 0.26em;
-  text-transform: uppercase;
-  line-height: 2;
-  color: rgba(252, 245, 231, 0.82);
-  text-shadow: 0 1px 20px rgba(20, 18, 12, 0.7);
+.closing__sign {
+  margin: clamp(1.1rem, 4vw, 1.6rem) 0 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(1rem, 4vw, 1.3rem);
+  letter-spacing: 0.05em;
+  color: rgba(255, 250, 240, 0.94);
+  text-shadow: 0 0 30px rgba(255, 232, 196, 0.45), 0 2px 18px rgba(20, 18, 12, 0.8);
   opacity: 0;
   transform: translateY(0.5em);
 }
-.closing[aria-hidden="false"] .closing__lead { animation: bloom 3.4s var(--soft) 0.2s forwards; }
-.closing[aria-hidden="false"] .closing__coda { animation: rise 2.6s var(--soft) 2.2s forwards; }
+
+.closing[aria-hidden="false"] .closing__cat { animation: arrive 2.2s var(--soft) 0.15s forwards; }
+.closing[aria-hidden="false"] .closing__lead { animation: bloom 3s var(--soft) 1.2s forwards; }
+.closing[aria-hidden="false"] .closing__sign { animation: rise 2.4s var(--soft) 2.8s forwards; }
+
+@keyframes arrive {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* fade the opening words out when the camera moves on */
-.app[data-state="EGG_SCENE"] .greeting,
-.app[data-state="EGG_CRACKING"] .greeting,
-.app[data-state="HATCHED"] .greeting,
 .app[data-state="FINAL_MESSAGE"] .greeting,
-.app[data-state="EGG_SCENE"] .verse,
-.app[data-state="EGG_CRACKING"] .verse,
-.app[data-state="HATCHED"] .verse,
 .app[data-state="FINAL_MESSAGE"] .verse,
-.app[data-state="EGG_SCENE"] .onward,
-.app[data-state="EGG_CRACKING"] .onward,
-.app[data-state="HATCHED"] .onward,
 .app[data-state="FINAL_MESSAGE"] .onward { opacity: 0; pointer-events: none; }
 
 /* ==========================================================================
@@ -752,158 +767,6 @@ body {
 .app[data-state="LOCKED"] .sound { opacity: 0; pointer-events: none; }
 
 /* ==========================================================================
-   the egg
-   ========================================================================== */
-
-.egg { opacity: 0; transition: opacity 2.4s var(--soft) 0.4s; }
-.egg.is-present { opacity: 1; }
-
-.egg__shadow { fill: #2c3418; opacity: 0.42; }
-.egg__bowl-lip { opacity: 0; transition: opacity 1.2s var(--soft); }
-.egg__cap-shadow {
-  fill: #2c3418;
-  opacity: 0;
-  transition: opacity 1.6s var(--soft) 0.6s;
-}
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__cap-shadow { opacity: 0.34; }
-.egg__blade { stroke: #61703c; stroke-linecap: round; fill: none; }
-
-.egg__cracks { transition: opacity 0.9s var(--soft); }
-.egg__crack {
-  fill: none;
-  stroke: #8c7150;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.9;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1.6s var(--soft);
-}
-
-.egg__shell {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
-.egg__cap-group {
-  transform-box: fill-box;
-  transform-origin: 32% 100%;
-  transition: transform 1.8s cubic-bezier(0.34, 0.06, 0.2, 1), opacity 1.4s var(--soft);
-}
-.egg__shard {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  transition: transform 1.9s cubic-bezier(0.3, 0.1, 0.2, 1), opacity 1.3s var(--soft);
-}
-
-.egg__sun {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  transform: translateY(30px) scale(0.28);
-  transition: transform 2.1s cubic-bezier(0.22, 0.72, 0.24, 1), opacity 1.3s var(--soft);
-}
-.egg__bob {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
-.egg__rays {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  transition: opacity 2.4s var(--soft) 0.5s;
-}
-.egg__ray { fill: #ffdf9e; opacity: 0.5; }
-.egg__face path {
-  fill: none;
-  stroke: #96602f;
-  stroke-width: 2.1;
-  stroke-linecap: round;
-}
-.egg__blush { fill: #ef9e7c; opacity: 0.5; }
-.egg__bloom { opacity: 0; transition: opacity 2.6s var(--soft); }
-.egg__spark {
-  fill: #fff3d2;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-}
-
-/* ————— the score ————— */
-
-/* 1–4 : the egg simply breathes */
-.egg:is([data-stage="1"], [data-stage="2"], [data-stage="3"], [data-stage="4"]) .egg__shell {
-  animation: breathe 6.5s ease-in-out infinite;
-}
-/* 2 : one hairline crack */
-.egg:is([data-stage="2"], [data-stage="3"], [data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--1 {
-  stroke-dashoffset: 0;
-}
-/* 3 : it lengthens, and another answers it */
-.egg:is([data-stage="3"], [data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--2 { stroke-dashoffset: 0; }
-.egg:is([data-stage="3"], [data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--3 {
-  stroke-dashoffset: 0;
-  transition-delay: 0.7s;
-}
-/* 4 : something inside shifts */
-.egg:is([data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--4 { stroke-dashoffset: 0; }
-.egg:is([data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--5 { stroke-dashoffset: 0; transition-delay: 0.5s; }
-.egg:is([data-stage="4"], [data-stage="5"], [data-stage="6"], [data-stage="7"]) .egg__crack--6 { stroke-dashoffset: 0; transition-delay: 1s; }
-.egg[data-stage="4"] .egg__shell { animation: breathe 6.5s ease-in-out infinite, nudge 2.4s var(--ease) 0.3s 1; }
-
-/* 5 : the wobble */
-.egg[data-stage="5"] .egg__shell { animation: wobble 1.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite; }
-
-/* 6 : the shell gives way */
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__shell { animation: none; }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__cracks { opacity: 0; }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__bowl-lip { opacity: 1; }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__cap-group {
-  transform: translate(20px, 58px) rotate(61deg);
-}
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__shard { opacity: 0.9; }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__shard--a { transform: translate(-30px, 62px) rotate(-46deg); }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__shard--b { transform: translate(38px, 58px) rotate(52deg); transition-delay: 0.16s; }
-.egg:is([data-stage="6"], [data-stage="7"]) .egg__shard--c { transform: translate(-9px, 66px) rotate(24deg); transition-delay: 0.3s; }
-
-/* 7 : and a small warm thing climbs out */
-.egg[data-stage="7"] .egg__sun { opacity: 1; transform: translateY(0) scale(1); }
-.egg[data-stage="7"] .egg__bob { animation: float 5.4s ease-in-out 2s infinite; }
-.egg[data-stage="7"] .egg__rays { opacity: 1; animation: turn 54s linear 1s infinite; }
-.egg[data-stage="7"] .egg__bloom { opacity: 1; }
-.egg[data-stage="7"] .egg__spark { animation: twinkle 4.6s ease-in-out infinite; animation-delay: var(--spark-delay, 0s); }
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.012) translateY(-0.4px); }
-}
-@keyframes nudge {
-  0%, 100%    { transform: rotate(0deg); }
-  22%         { transform: rotate(-1.4deg); }
-  46%         { transform: rotate(0.9deg); }
-  70%         { transform: rotate(-0.4deg); }
-}
-@keyframes wobble {
-  0%, 100% { transform: rotate(0deg); }
-  18%      { transform: rotate(-3.4deg) translateY(-1px); }
-  42%      { transform: rotate(2.9deg); }
-  66%      { transform: rotate(-1.9deg); }
-  86%      { transform: rotate(1deg); }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
-@keyframes turn {
-  to { transform: rotate(360deg); }
-}
-@keyframes twinkle {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  45%      { opacity: 0.85; transform: scale(1); }
-}
-
-/* ==========================================================================
    short screens
    ========================================================================== */
 
@@ -913,7 +776,10 @@ body {
   .greeting__line { font-size: clamp(1.1rem, 3.4vh, 1.6rem); }
   .verse { top: 54%; font-size: clamp(1.1rem, 5vh, 1.9rem); }
   .hint, .onward { bottom: calc(5vh + env(safe-area-inset-bottom, 0px)); }
-  .closing { bottom: calc(7vh + env(safe-area-inset-bottom, 0px)); }
+  .closing { width: min(94vw, 40rem); }
+  .closing__cat { height: clamp(6rem, 34vh, 9rem); margin-bottom: 0.7rem; }
+  .closing__lead { font-size: clamp(1rem, 3.4vh, 1.4rem); }
+  .closing__sign { margin-top: 0.7rem; }
   /* A phone on its side has no room to stack the keypad under the words, so the
      card turns itself sideways too. */
   .lock { padding: 0.75rem 1rem; }
@@ -969,19 +835,17 @@ body {
   .greeting__line .w,
   .greeting__name,
   .closing__lead,
-  .closing__coda {
+  .closing__sign {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
   }
+  /* the cat keeps its contact shadow; only the movement goes */
+  .closing__cat { opacity: 1 !important; transform: none !important; }
   .camera { transition-duration: 900ms !important; }
   .verse { filter: none; }
   .hint__trail { background-position: 50% 0; opacity: 0.8; }
   .onward__arrow { animation: none; transform: none; opacity: 1; }
   .lock__veil,
   .lock__shells { animation: none; }
-  .egg__cap-group,
-  .egg__shard,
-  .egg__sun { transition-duration: 900ms !important; }
-  .egg__crack { transition-duration: 700ms !important; }
 }
